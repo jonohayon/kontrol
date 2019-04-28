@@ -11,6 +11,7 @@ Read the article on [Wikipedia](https://en.wikipedia.org/wiki/Control_theory).
  - [x] Discretization of continous models
  - [x] State space controller definition
  - [x] Controller simulation (outputs a string for [Desmos](https://www.desmos.com/calculator))
+ - [ ] Common FRC system models, ready for easy deployment to a robot
  - [ ] Pole placement gains generation
  - [ ] LQR controller design
  - [ ] State space estimator definition
