@@ -1,7 +1,10 @@
 package kontrol
 
 import koma.extensions.*
+import koma.eye
 import koma.matrix.Matrix
+import koma.ones
+import koma.util.validation.validate
 import koma.zeros
 
 /**
@@ -30,6 +33,27 @@ class Model(val X: Int, val Y: Int, val U: Int) {
     val m = Model(X, Y, U)
     m.A = A; m.B = B; m.C = C; m.D = D; m.isDiscrete = isDiscrete
     return m
+  }
+
+  /**
+   * Computes the steady state feedforward input for the given reference input, using equations 8.17-8.19
+   * from the Practical Guide to State-space Control (https://file.tavsys.net/control/state-space-guide.pdf).
+   * @param reference The given reference input of the systen
+   * @return The feedforward input required to keep the system at the reference input steady state
+   */
+  fun steadyStateFeedforward(reference: Matrix<Double>): Matrix<Double> {
+    reference.validate("reference input") { X x 1 }
+    val stateRelationMatrix = zeros(X + Y, X + U)
+    stateRelationMatrix[0 until X, 0 until X] = if (isDiscrete) A else (A - eye(A.shape()[0]))
+    stateRelationMatrix[0 until X, X until X + U] = B
+    stateRelationMatrix[X until X + Y, 0 until X] = C
+    stateRelationMatrix[X until X + Y, X until X + U]
+    val pseudoInverse = stateRelationMatrix.pinv()
+    val b = zeros(X + Y, Y)
+    b[X until X + Y, 0 until Y] = ones(Y, Y)
+    val res = pseudoInverse * b
+    val Nx = res[0 until X, 0 until Y]; val Nu = res[X until X + U, 0 until Y]
+    return Nu * Nx.pinv() * reference
   }
 
   companion object {

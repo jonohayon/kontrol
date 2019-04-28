@@ -19,6 +19,5 @@ fun main() {
   val x0 = mat [10 end 0]
   val toPlot = arrayOf(controller.lsim(x0).map { yk -> yk[0, 0] })
 
-  figure(1)
-  plot(toPlot)
+  println(discrete.steadyStateFeedforward(x0))
 }
