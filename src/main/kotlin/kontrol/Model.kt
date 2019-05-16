@@ -26,6 +26,22 @@ class Model(val X: Int, val Y: Int, val U: Int) {
 
   var isDiscrete: Boolean = false
 
+  val controllability: Matrix<Double>
+    get() {
+      val z = zeros(X, U * X)
+      for (i in 0 until X)
+        z[0 until X, U * i until U * (i + 1)] = A.pow(i) * B
+      return z
+    }
+
+  val observability: Matrix<Double>
+    get() {
+      val z = zeros(Y * X, X)
+      for (i in 0 until X)
+        z[Y * i until Y * (i + 1), 0 until X] = C * A.pow(i)
+      return z
+    }
+
   /**
    * Creates a new [Model] instance with the properties of the current instance.
    */
@@ -44,7 +60,7 @@ class Model(val X: Int, val Y: Int, val U: Int) {
   fun steadyStateFeedforward(reference: Matrix<Double>): Matrix<Double> {
     reference.validate("reference input") { X x 1 }
     val stateRelationMatrix = zeros(X + Y, X + U)
-    stateRelationMatrix[0 until X, 0 until X] = if (isDiscrete) A else (A - eye(A.shape()[0]))
+    stateRelationMatrix[0 until X, 0 until X] = if (!isDiscrete) A else (A - eye(A.shape()[0]))
     stateRelationMatrix[0 until X, X until X + U] = B
     stateRelationMatrix[X until X + Y, 0 until X] = C
     stateRelationMatrix[X until X + Y, X until X + U]
@@ -54,6 +70,22 @@ class Model(val X: Int, val Y: Int, val U: Int) {
     val res = pseudoInverse * b
     val Nx = res[0 until X, 0 until Y]; val Nu = res[X until X + U, 0 until Y]
     return Nu * Nx.pinv() * reference
+  }
+
+  /**
+   * Calculates the rank of the controllability matrix of the model. If this is equal to the number
+   * of states, then the system is considered to be controllable.
+   */
+  fun isControllable(): Boolean {
+    return this.controllability.rank() == X
+  }
+
+  /**
+   * Calculates the rank of the observability matrix of the model. If this is equal to the number of
+   * states, then the system is considered to be controllable.
+   */
+  fun isObservable(): Boolean {
+    return this.observability.rank() == X
   }
 
   companion object {
