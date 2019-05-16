@@ -63,7 +63,7 @@ class Model(val X: Int, val Y: Int, val U: Int) {
     stateRelationMatrix[0 until X, 0 until X] = if (!isDiscrete) A else (A - eye(A.shape()[0]))
     stateRelationMatrix[0 until X, X until X + U] = B
     stateRelationMatrix[X until X + Y, 0 until X] = C
-    stateRelationMatrix[X until X + Y, X until X + U]
+    stateRelationMatrix[X until X + Y, X until X + U] = D
     val pseudoInverse = stateRelationMatrix.pinv()
     val b = zeros(X + Y, Y)
     b[X until X + Y, 0 until Y] = ones(Y, Y)
