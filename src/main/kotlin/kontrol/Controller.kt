@@ -39,20 +39,24 @@ class Controller(private val model: Model) {
   }
 
   /**
-   * Simulates a controller's response with a given initial state. Currently works only for discrete
-   * models, still WIP.
+   * Simulates a controller's response with a given initial state, with the *input set to the zero vector*.
+   * Still WIP.
    * @param x0 The initial state of the system
    * @param dt The sampling time of the controller
    * @param tTotal The total running time of the controller
+   * @return A list of the system outputs over the interval [0, tTotal] in increments of dt
    */
   fun lsim(x0: Matrix<Double>, dt: Double = 0.01, tTotal: Double = 10.0): List<Matrix<Double>> {
     x0.validate("initial state vector") { model.X x 1 }
 
+    // Discritizes the current model. According to the Octave source code, this is the way to do apparently
+    val newMod = if (!this.model.isDiscrete) Model.c2d(this.model, dt) else this.model
+
     val samples: Int = (tTotal / dt).toInt()
     var x = x0
     val simulatedValues = (0..samples).map { i ->
-      val xnew = this.model.A * x + this.model.B * u
-      val ynew = this.model.C * x + this.model.D * u
+      val xnew = newMod.A * x + newMod.B * u
+      val ynew = newMod.C * x + newMod.D * u
       x = xnew
       this.update(ynew, dt)
       ynew
